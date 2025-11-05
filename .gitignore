@@ -1,0 +1,25 @@
+foo.md
+
+venv/# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual env
+venv/
+.env
+
+# Data & outputs
+data/*.bin
+data/*.npy
+out-*/
+checkpoints/
+*.ckpt
+*.pt
+
+# IDEs
+.vscode/
+.idea/
+
+# MacOS
+.DS_Store
