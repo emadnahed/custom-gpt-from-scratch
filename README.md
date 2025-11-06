@@ -35,6 +35,22 @@ This project implements a highly optimized GPT (Generative Pre-trained Transform
 
 ## 🛠️ Installation
 
+### Python Requirements
+
+**Recommended:** Python 3.11
+**Minimum:** Python 3.8
+**Check your version:** `python3 --version`
+
+```bash
+# If you have multiple Python versions, use the specific one:
+python3.11 --version           # Check if 3.11 is available
+python3.11 -m venv venv        # Create venv with 3.11
+python3.11 gpt.py info         # Use 3.11 for all commands
+
+# Or check which version to use:
+python check_python_version.py
+```
+
 ### Automated Setup (Easiest!)
 
 ```bash
@@ -47,6 +63,7 @@ setup.bat
 
 The setup script automatically:
 - Checks/installs Python (if needed)
+- Verifies Python version (3.11 recommended)
 - Creates virtual environment
 - Installs dependencies
 - Detects hardware

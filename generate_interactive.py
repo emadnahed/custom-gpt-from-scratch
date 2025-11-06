@@ -73,19 +73,12 @@ def interactive_generate():
 
         # Encode prompt
         if prompt:
-            try:
-                context = torch.tensor(
-                    [stoi.get(c, 0) for c in prompt],
-                    dtype=torch.long,
-                    device='cpu'
-                ).unsqueeze(0)
-            except:
-                print("⚠ Some characters not in vocabulary, using closest matches")
-                context = torch.tensor(
-                    [stoi.get(c, 0) for c in prompt],
-                    dtype=torch.long,
-                    device='cpu'
-                ).unsqueeze(0)
+            # The .get(c, 0) handles characters not in the vocabulary
+            context = torch.tensor(
+                [stoi.get(c, 0) for c in prompt],
+                dtype=torch.long,
+                device='cpu'
+            ).unsqueeze(0)
         else:
             # Random start
             context = torch.zeros((1, 1), dtype=torch.long, device='cpu')

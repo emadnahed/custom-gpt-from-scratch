@@ -31,17 +31,25 @@ echo -e "${NC}"
 
 echo -e "${BOLD}Step 1: Checking Python...${NC}"
 
+# Check for Python 3.11 first (recommended)
+if command -v python3.11 &> /dev/null; then
+    PYTHON_VERSION=$(python3.11 --version 2>&1 | awk '{print $2}')
+    echo -e "${GREEN}✓ Python $PYTHON_VERSION found (recommended version!)${NC}"
+    PYTHON_CMD="python3.11"
 # Check if Python 3 is installed
-if command -v python3 &> /dev/null; then
+elif command -v python3 &> /dev/null; then
     PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
     PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d. -f1)
     PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d. -f2)
 
-    if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
-        echo -e "${GREEN}✓ Python $PYTHON_VERSION found${NC}"
+    if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 11 ]; then
+        echo -e "${GREEN}✓ Python $PYTHON_VERSION found (perfect!)${NC}"
+        PYTHON_CMD="python3"
+    elif [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 8 ]; then
+        echo -e "${YELLOW}⚠ Python $PYTHON_VERSION found (works, but 3.11 recommended)${NC}"
         PYTHON_CMD="python3"
     else
-        echo -e "${YELLOW}⚠ Python $PYTHON_VERSION is too old (need 3.8+)${NC}"
+        echo -e "${YELLOW}⚠ Python $PYTHON_VERSION is too old (need 3.8+, recommend 3.11)${NC}"
         NEED_PYTHON=1
     fi
 else

@@ -19,6 +19,33 @@ import argparse
 import subprocess
 from pathlib import Path
 
+# Check Python version early
+if sys.version_info < (3, 8):
+    print("ERROR: Python 3.8 or higher is required")
+    print(f"You are using Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+    print("\nPlease upgrade Python or use a newer version:")
+    print("  python3.11 gpt.py <command>")
+    sys.exit(1)
+
+# Warn if not using recommended version
+if sys.version_info < (3, 11):
+    print(f"⚠️  Warning: Python 3.11+ is recommended (you have {sys.version_info.major}.{sys.version_info.minor})")
+    print("   Your version will work, but consider upgrading for best compatibility.\n")
+
+# Check if in virtual environment
+def is_in_venv():
+    """Check if running in a virtual environment"""
+    return (hasattr(sys, 'real_prefix') or
+            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix) or
+            os.environ.get('VIRTUAL_ENV'))
+
+# Warn if not in virtual environment
+if not is_in_venv() and os.path.exists('venv'):
+    print("⚠️  Warning: Virtual environment detected but not activated!")
+    print("   For best results, activate it first:")
+    print("   source venv/bin/activate  (Mac/Linux)")
+    print("   venv\\Scripts\\activate     (Windows)\n")
+
 
 class Colors:
     """ANSI color codes for pretty output"""
@@ -60,9 +87,37 @@ def print_warning(text):
     print(f"{Colors.YELLOW}⚠ {text}{Colors.END}")
 
 
+def get_best_python():
+    """
+    Get the best Python executable to use
+    Returns venv Python if available, otherwise current Python
+    """
+    # If we're already in venv, use current Python
+    if is_in_venv():
+        return sys.executable
+
+    # If venv exists but not activated, use it
+    venv_paths = [
+        'venv/bin/python',
+        'venv/Scripts/python.exe',
+        '.venv/bin/python',
+        '.venv/Scripts/python.exe',
+    ]
+
+    for venv_path in venv_paths:
+        if os.path.exists(venv_path):
+            return os.path.abspath(venv_path)
+
+    # No venv available, use current Python
+    return sys.executable
+
+
 def run_python_script(script_path, args=None):
-    """Run a Python script with venv"""
-    cmd = ['venv/bin/python', script_path]
+    """Run a Python script with the best available Python interpreter"""
+    # Get the best Python (venv if available)
+    python_cmd = get_best_python()
+
+    cmd = [python_cmd, script_path]
     if args:
         cmd.extend(args)
 
@@ -73,7 +128,8 @@ def run_python_script(script_path, args=None):
         print_error(f"Script failed with error code {e.returncode}")
         return False
     except FileNotFoundError:
-        print_error("Virtual environment not found. Run: python3 -m venv venv")
+        print_error(f"Python interpreter not found: {python_cmd}")
+        print_info("Make sure virtual environment is set up: python3 -m venv venv")
         return False
 
 
@@ -165,11 +221,11 @@ def cmd_generate(args):
         print_info("Train a model first with: python gpt.py train")
         return
 
-    try:
-        from generate_interactive import interactive_generate
-        interactive_generate()
-    except ImportError:
+    # Run generation script with proper Python
+    # This ensures it uses venv Python with all dependencies
+    if not run_python_script('generate_interactive.py'):
         # Fallback to simple generation
+        print_info("Trying simple generation...")
         run_python_script('generate_demo.py')
 
 
@@ -177,26 +233,20 @@ def cmd_config(args):
     """Create/edit configuration"""
     print_header("Configuration Builder")
 
-    try:
-        from config_builder import interactive_config_builder
-        interactive_config_builder()
-    except ImportError as e:
-        print_error(f"Config builder not available: {e}")
+    # Run as script to ensure proper Python with dependencies
+    if not run_python_script('config_builder.py'):
+        print_error("Config builder failed")
+        print_info("Make sure dependencies are installed: pip install -r requirements.txt")
 
 
 def cmd_dataset(args):
     """Manage datasets"""
     print_header("Dataset Manager")
 
-    try:
-        from dataset_manager import manage_datasets
-        manage_datasets()
-    except ImportError:
-        print_error("Dataset manager not available yet")
-        print_info("Available datasets:")
-        datasets = list_available_datasets()
-        for ds in datasets:
-            print(f"  - {ds}")
+    # Run as script to ensure proper Python with dependencies
+    if not run_python_script('dataset_manager.py'):
+        print_error("Dataset manager failed")
+        print_info("Make sure dependencies are installed: pip install -r requirements.txt")
 
 
 def cmd_hardware(args):

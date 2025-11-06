@@ -9,8 +9,50 @@ Makes it easy to:
 """
 
 import os
+import sys
 import subprocess
 from pathlib import Path
+
+# Import utility for getting correct Python executable
+def get_python_for_scripts():
+    """
+    Get the best Python executable to use for running scripts
+    Fallback implementation if utils not available
+    """
+    import os
+
+    # Check if we're in a virtualenv
+    in_venv = (
+        hasattr(sys, 'real_prefix') or
+        (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix) or
+        os.environ.get('VIRTUAL_ENV')
+    )
+
+    # If in venv, use current Python
+    if in_venv:
+        return sys.executable, None
+
+    # If venv exists but not activated, use it
+    venv_paths = [
+        'venv/bin/python',
+        'venv/Scripts/python.exe',
+        '.venv/bin/python',
+        '.venv/Scripts/python.exe',
+    ]
+
+    for venv_path in venv_paths:
+        if os.path.exists(venv_path):
+            return os.path.abspath(venv_path), None
+
+    # No venv available - warn user
+    warning = (
+        "⚠️  Virtual environment not detected!\n"
+        "   For best results, activate the virtual environment:\n"
+        "   source venv/bin/activate  (Mac/Linux)\n"
+        "   venv\\Scripts\\activate     (Windows)"
+    )
+
+    return sys.executable, warning
 
 
 def print_header(text):
@@ -44,8 +86,15 @@ def prepare_shakespeare():
     print("Preparing Shakespeare dataset...")
     print("This will download ~1MB of text and create train/val splits.\n")
 
+    # Get correct Python executable (venv if available)
+    python_cmd, warning = get_python_for_scripts()
+
+    if warning:
+        print(warning)
+        print()
+
     result = subprocess.run(
-        ['venv/bin/python', 'data/prepare.py'],
+        [python_cmd, 'data/prepare.py'],
         capture_output=False
     )
 
@@ -53,6 +102,8 @@ def prepare_shakespeare():
         print("\n✓ Shakespeare dataset prepared successfully!")
     else:
         print("\n✗ Failed to prepare dataset")
+        print("Make sure dependencies are installed:")
+        print("  pip install -r requirements.txt")
 
 
 def prepare_custom_text():
@@ -162,12 +213,21 @@ print("✓ Dataset prepared!")
         f.write(code)
         temp_script = f.name
 
+    # Get correct Python executable
+    python_cmd, warning = get_python_for_scripts()
+
+    if warning:
+        print(warning)
+        print()
+
     try:
-        subprocess.run(['venv/bin/python', temp_script], check=True)
+        subprocess.run([python_cmd, temp_script], check=True)
         os.unlink(temp_script)
         print("\n✓ Dataset prepared successfully!")
     except subprocess.CalledProcessError:
         print("\n✗ Failed to prepare dataset")
+        print("Make sure dependencies are installed:")
+        print("  pip install -r requirements.txt")
         os.unlink(temp_script)
 
 

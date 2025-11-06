@@ -205,14 +205,18 @@ if compile_model:
 # Optimizer
 optimizer = model.configure_optimizers(weight_decay, learning_rate, (beta1, beta2), device_type)
 
-# Mixed precision training
-# Note: MPS doesn't support autocast yet, so we use nullcontext for MPS and CPU
+# Mixed precision training setup
+# Note: MPS doesn't support autocast yet (as of PyTorch 2.0), so we use nullcontext for MPS and CPU
+# See: https://github.com/pytorch/pytorch/issues/77764
 if device_type == 'cuda':
+    # CUDA: Use autocast for automatic mixed precision (AMP)
     ctx = torch.amp.autocast(device_type=device_type, dtype=getattr(torch, dtype))
+    # Enable gradient scaling for float16 to prevent underflow
     scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
 else:
+    # MPS/CPU: Use default precision since autocast isn't supported
     ctx = nullcontext()
-    scaler = torch.cuda.amp.GradScaler(enabled=False)
+    scaler = torch.cuda.amp.GradScaler(enabled=False)  # Disable for non-CUDA
 
 
 # Training utilities
