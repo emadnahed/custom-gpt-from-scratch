@@ -1,0 +1,56 @@
+{
+  "name": "custom-gpt-from-scratch",
+  "description": "Your GPT Training Scripts - Like package.json for AI!",
+  "scripts": {
+    "info": "python gpt.py info",
+    "train": "python gpt.py train",
+    "generate": "python gpt.py generate",
+    "config": "python gpt.py config",
+    "dataset": "python gpt.py dataset",
+    "hardware": "python gpt.py hardware",
+    "quick-train": "python train.py --config config/train_demo.py",
+    "full-train": "python train.py --config config/train_default.py",
+    "check": "python check_hardware.py"
+  },
+  "usage": {
+    "Most Common": {
+      "Start Training": "python gpt.py train",
+      "Generate Text": "python gpt.py generate",
+      "Check Setup": "python gpt.py info",
+      "Check Hardware": "python gpt.py hardware"
+    },
+    "Dataset Management": {
+      "Manage Datasets": "python gpt.py dataset",
+      "Prepare Shakespeare": "cd data && python prepare.py && cd .."
+    },
+    "Configuration": {
+      "Create Config": "python gpt.py config",
+      "Interactive Training": "python train.py --interactive"
+    },
+    "Quick Commands": {
+      "Show Info": "python gpt.py info",
+      "Quick Test": "python train.py --config config/train_demo.py"
+    }
+  },
+  "presets": {
+    "models": {
+      "tiny": "~6M params, fast training, good for testing",
+      "small": "~25M params, good for laptops",
+      "medium": "~80M params, needs GPU",
+      "large": "~350M params, needs high-end GPU"
+    },
+    "durations": {
+      "quick": "200 iterations (~5 min on CPU)",
+      "short": "1000 iterations (~20 min on CPU)",
+      "medium": "5000 iterations (~2 hours on CPU)",
+      "long": "20000+ iterations (several hours)"
+    }
+  },
+  "tips": [
+    "Always start with 'python gpt.py info' to check your setup",
+    "Use 'quick' duration for testing, 'medium' or 'long' for real training",
+    "Start with 'tiny' or 'small' models if you're on CPU",
+    "More layers = better results but slower training",
+    "Watch the loss value - it should decrease over time"
+  ]
+}

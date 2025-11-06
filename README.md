@@ -35,6 +35,26 @@ This project implements a highly optimized GPT (Generative Pre-trained Transform
 
 ## 🛠️ Installation
 
+### Automated Setup (Easiest!)
+
+```bash
+# One command setup (Mac/Linux)
+./setup.sh
+
+# Or on Windows
+setup.bat
+```
+
+The setup script automatically:
+- Checks/installs Python (if needed)
+- Creates virtual environment
+- Installs dependencies
+- Detects hardware
+- Prepares dataset
+- Gets you ready to train!
+
+### Manual Installation
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/emadnahed/custom-gpt-from-scratch.git
@@ -52,25 +72,193 @@ This project implements a highly optimized GPT (Generative Pre-trained Transform
    pip install -r requirements.txt
    ```
 
+## 🖥️ Hardware Auto-Detection
+
+This project includes comprehensive hardware detection for seamless training across different platforms:
+
+### Supported Hardware
+
+- **NVIDIA CUDA** - NVIDIA GPUs with CUDA support
+- **AMD ROCm** - AMD GPUs on Linux
+- **Apple Metal (MPS)** - Apple Silicon (M1/M2/M3)
+- **Intel XPU** - Intel GPUs with Intel Extension for PyTorch
+- **CPU** - Universal fallback
+
+### Quick Hardware Check
+
+Check what hardware is available on your system:
+
+```bash
+# Show all detected hardware
+python check_hardware.py
+
+# Interactive hardware selection
+python check_hardware.py --interactive
+
+# Show only recommended device
+python check_hardware.py --recommended
+
+# JSON output for scripting
+python check_hardware.py --json
+```
+
+### Using with Training
+
+The training script automatically detects and uses the best available hardware:
+
+```bash
+# Auto-detect hardware (recommended)
+python train.py
+
+# Interactively choose hardware
+python train.py --interactive
+
+# Show hardware options without training
+python train.py --show-hardware
+```
+
+### Hardware Detection Features
+
+- Automatic detection of best available hardware
+- Display of available and unavailable hardware (color-coded)
+- Device capabilities (memory, compute capability, precision support)
+- Optimal precision selection (bfloat16, float16, float32)
+- Platform-specific optimizations
+
+For detailed information, see:
+- `START_HERE.md` - Ultra quick start guide
+- `GETTING_STARTED.md` - Comprehensive beginner's guide
+- `HARDWARE_FEATURE_SUMMARY.md` - Hardware detection features
+
+## 🎮 Command Center (Like npm scripts!)
+
+This project includes an intuitive command center (`gpt.py`) - think of it as your "package.json scripts" for GPT training!
+
+### Quick Commands
+
+```bash
+# Most used commands (like npm run)
+python gpt.py train          # Interactive training setup
+python gpt.py generate       # Generate text from trained model
+python gpt.py info           # Check your setup status
+python gpt.py hardware       # View available hardware
+
+# Management commands
+python gpt.py config         # Create custom configurations
+python gpt.py dataset        # Manage datasets (add/prepare/switch)
+```
+
+### Interactive Training Workflow
+
+```bash
+python gpt.py train
+
+# You'll be asked:
+# 1. Which hardware? (auto-detected!)
+# 2. Which dataset? (Shakespeare, or your own)
+# 3. Model size? (tiny/small/medium/large or custom)
+# 4. Number of layers? (4, 8, 12, 24, or custom)
+# 5. How long? (quick/short/medium/long)
+# 6. Start now? (yes!)
+```
+
+### Custom Model Architecture
+
+Easily customize the number of layers and other parameters:
+
+```bash
+python gpt.py config
+
+# When prompted:
+# - Choose custom architecture
+# - Set n_layer (number of transformer layers):
+#   * 4 layers: Fast, good for testing
+#   * 8 layers: Balanced
+#   * 12 layers: Good quality (recommended)
+#   * 24 layers: Best quality (needs good hardware)
+# - Adjust other parameters (heads, embedding size, etc.)
+```
+
+### Dataset Management
+
+```bash
+python gpt.py dataset
+
+# Options:
+# 1. List available datasets
+# 2. Prepare Shakespeare (default)
+# 3. Add your own text file
+# 4. View dataset info
+```
+
+### Traditional Commands (Still Supported)
+
+```bash
+# Traditional training
+python train.py --config config/my_config.py
+
+# Traditional generation
+python generate_demo.py
+
+# Hardware check
+python check_hardware.py
+```
+
+See `QUICK_REFERENCE.md` for complete command documentation.
+
 ## 🏗️ Project Structure
 
 ```
 custom-gpt-from-scratch/
 │
-├── data/                 # Data loading and preprocessing
-│   └── prepare.py        # Data preparation scripts
+├── 🎮 Main Commands (Your Interface)
+│   ├── gpt.py                     # Command center (use this!)
+│   ├── setup.sh / setup.bat       # Automated setup scripts
+│   └── scripts.json               # Available commands reference
 │
-├── model/                # Model architecture
-│   ├── __init__.py
-│   └── transformer.py    # Core transformer implementation
+├── 📚 Documentation
+│   ├── START_HERE.md              # Ultra quick start
+│   ├── QUICK_REFERENCE.md         # Command cheat sheet
+│   ├── GETTING_STARTED.md         # Comprehensive guide
+│   ├── HARDWARE_FEATURE_SUMMARY.md # Hardware features
+│   └── README.md                  # This file
 │
-├── config/               # Configuration files
-│   └── train_default.py  # Default training configuration
+├── ⚙️ Configuration & Management
+│   ├── config_builder.py          # Interactive config creator
+│   ├── dataset_manager.py         # Dataset management
+│   ├── generate_interactive.py    # Interactive text generation
+│   └── config/                    # Training configurations
+│       ├── train_default.py
+│       ├── train_demo.py
+│       └── train_*.py             # Your custom configs
 │
-├── train.py              # Training script
-├── sample.py             # Text generation script
-├── requirements.txt      # Project dependencies
-└── README.md
+├── 🧠 Core Components
+│   ├── model/                     # Model architecture
+│   │   ├── __init__.py
+│   │   └── transformer.py         # GPT implementation
+│   │
+│   ├── utils/                     # Utility modules
+│   │   ├── __init__.py
+│   │   └── hardware_detector.py   # Hardware detection
+│   │
+│   └── data/                      # Datasets
+│       ├── prepare.py             # Data preparation
+│       ├── train.bin              # Prepared training data
+│       └── val.bin                # Validation data
+│
+├── 🎯 Traditional Scripts (Still Work)
+│   ├── train.py                   # Training script
+│   ├── sample.py                  # Text generation
+│   ├── generate_demo.py           # Simple generation
+│   └── check_hardware.py          # Hardware checker
+│
+├── 📦 Output
+│   └── out/                       # Trained models
+│       └── ckpt.pt                # Your trained model!
+│
+└── 🔧 Setup
+    ├── requirements.txt           # Python dependencies
+    └── venv/                      # Virtual environment
 ```
 
 ## 🚦 Getting Started

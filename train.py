@@ -3,6 +3,8 @@ Training script for GPT model
 
 Usage:
     python train.py --config config/train_default.py
+    python train.py --interactive  # Interactive hardware selection
+    python train.py --show-hardware  # Show available hardware and exit
 
 This script handles:
 - Model initialization
@@ -10,12 +12,15 @@ This script handles:
 - Evaluation and logging
 - Checkpoint saving
 - Learning rate scheduling
+- Automatic hardware detection (CUDA, ROCm, MPS, Intel XPU, CPU)
 """
 
 import os
+import sys
 import time
 import math
 import pickle
+import argparse
 from contextlib import nullcontext
 
 import numpy as np
@@ -24,6 +29,11 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 from model.transformer import GPT, GPTConfig, create_model
 from data.prepare import get_batch, load_prepared_dataset
+from utils.hardware_detector import (
+    HardwareDetector,
+    auto_detect_device,
+    interactive_device_selection
+)
 
 
 # Configuration
@@ -65,35 +75,81 @@ lr_decay_iters = 5000
 min_lr = 6e-5
 
 # System
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16'
+device = 'auto'  # Set to 'auto' for automatic detection, or specify 'cuda', 'mps', 'cpu', etc.
+dtype = 'auto'  # Set to 'auto' for automatic selection, or specify 'bfloat16', 'float16', 'float32'
 compile_model = False
+interactive_hardware = False  # Set to True to interactively select hardware
 
 # =============================================================================
 
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Train GPT model')
+parser.add_argument('--config', type=str, default='config/train_default.py', help='Path to config file')
+parser.add_argument('--interactive', action='store_true', help='Interactively select hardware')
+parser.add_argument('--show-hardware', action='store_true', help='Show available hardware and exit')
+args = parser.parse_args()
+
+# Show hardware and exit if requested
+if args.show_hardware:
+    detector = HardwareDetector()
+    detector.print_hardware_summary()
+    sys.exit(0)
+
 # Load configuration from file if specified
 config_keys = [k for k, v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str))]
-exec(open('config/train_default.py').read())  # overrides from config file
+if os.path.exists(args.config):
+    exec(open(args.config).read())  # overrides from config file
 config = {k: globals()[k] for k in config_keys}  # will be useful for logging
 
 # Setup
 # =============================================================================
 os.makedirs(out_dir, exist_ok=True)
 torch.manual_seed(1337)
-torch.backends.cuda.matmul.allow_tf32 = True
-torch.backends.cudnn.allow_tf32 = True
-device_type = 'cuda' if 'cuda' in device else 'cpu'
 
-# Auto-detect device
-if device == 'auto':
-    if torch.cuda.is_available():
-        device = 'cuda'
-    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-        device = 'mps'
+# Hardware detection and selection
+# =============================================================================
+print("\n" + "="*80)
+print("HARDWARE SETUP")
+print("="*80)
+
+if args.interactive or interactive_hardware:
+    # Interactive hardware selection
+    device, dtype = interactive_device_selection()
+else:
+    # Automatic hardware detection
+    if device == 'auto':
+        device, dtype_detected = auto_detect_device()
+        print(f"Auto-detected device: {device}")
+
+        # Use detected dtype if dtype is also set to auto
+        if dtype == 'auto':
+            dtype = dtype_detected
+            print(f"Auto-selected dtype: {dtype}")
     else:
-        device = 'cpu'
+        print(f"Using configured device: {device}")
 
-print(f"Using device: {device}")
+        # Auto-detect dtype if set to auto
+        if dtype == 'auto':
+            detector = HardwareDetector()
+            for hw_device in detector.get_available_devices():
+                if detector.get_device_string(hw_device) == device:
+                    dtype = detector.get_optimal_dtype(hw_device)
+                    print(f"Auto-selected dtype: {dtype}")
+                    break
+
+# Determine device type for mixed precision
+device_type = 'cuda' if 'cuda' in device else ('cpu' if device == 'cpu' else device)
+
+# Enable TF32 for CUDA devices (improves performance on Ampere+ GPUs)
+if device_type == 'cuda':
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+
+print(f"\nFinal configuration:")
+print(f"  Device: {device}")
+print(f"  Device Type: {device_type}")
+print(f"  Dtype: {dtype}")
+print("="*80 + "\n")
 
 # Data loading
 # =============================================================================
@@ -150,8 +206,13 @@ if compile_model:
 optimizer = model.configure_optimizers(weight_decay, learning_rate, (beta1, beta2), device_type)
 
 # Mixed precision training
-ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=getattr(torch, dtype))
-scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16' and device_type == 'cuda'))
+# Note: MPS doesn't support autocast yet, so we use nullcontext for MPS and CPU
+if device_type == 'cuda':
+    ctx = torch.amp.autocast(device_type=device_type, dtype=getattr(torch, dtype))
+    scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+else:
+    ctx = nullcontext()
+    scaler = torch.cuda.amp.GradScaler(enabled=False)
 
 
 # Training utilities
