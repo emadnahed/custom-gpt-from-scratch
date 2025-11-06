@@ -12,10 +12,14 @@ venv/
 # Data & outputs
 data/*.bin
 data/*.npy
+data/*.pkl
+data/*.txt
+out/
 out-*/
 checkpoints/
 *.ckpt
 *.pt
+*.pth
 
 # IDEs
 .vscode/
