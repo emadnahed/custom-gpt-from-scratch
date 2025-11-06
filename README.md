@@ -174,6 +174,152 @@ python sample.py --interactive
 
 All dependencies are listed in `requirements.txt`.
 
+## 🏛️ Architecture Deep Dive
+
+This section provides a detailed breakdown of the model architecture at different levels of abstraction, from the simplest overview to the complete technical implementation.
+
+### Level 1: Basic Flow (Simplest View)
+```
+Input → Tokenization → Token Embeddings → Transformer Blocks (×N layers) → Final Norm → Linear Head → Logits → Loss (if training)
+```
+
+### Level 2: Components Breakdown
+```
+Input Tokens → Token Embeddings → Dropout → 
+[Grouped Query Attention → Residual Add → Feedforward (SwiGLU/MLP) → Residual Add] (×N layers) → 
+Final Norm → Linear Head → Logits → Softmax (during generation)
+```
+
+### Level 3: With Residual Connections
+```
+Input Tokens → Token Embeddings → Dropout → 
+[x + GQA(x) → (x + GQA(x)) + MLP(x + GQA(x))] (×N layers) → 
+Final Norm → Linear Head → Logits
+```
+
+### Level 4: With Normalization (Complete Flow - Pre-LN Architecture)
+```
+Input Tokens → Token Embeddings → Dropout → 
+[RMSNorm → GQA → Add & Residual → RMSNorm → SwiGLU → Add & Residual] (×N layers) → 
+Final RMSNorm → Linear Head (weight-tied) → Logits → Cross-Entropy Loss
+```
+
+### Level 5: Advanced - Full Technical Flow
+```
+Input Tokens (B, T) 
+  ↓
+Token Embeddings: wte(idx) → (B, T, n_embd)
+  ↓
+Dropout(p=0.1)
+  ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ Transformer Block (×n_layer) - Pre-Norm Architecture:              │
+│                                                                     │
+│  x_norm = RMSNorm(x)  [or LayerNorm if configured]                │
+│    ↓                                                                │
+│  Grouped Query Attention (GQA):                                    │
+│    • Q = Linear(x_norm) → (B, n_head, T, head_dim)                │
+│    • K = Linear(x_norm) → (B, n_kv_head, T, head_dim)             │
+│    • V = Linear(x_norm) → (B, n_kv_head, T, head_dim)             │
+│    • Q, K = RoPE(Q, K)  [Rotary Position Embeddings]              │
+│    • K, V = repeat_interleave(K, V, n_rep)  [if GQA]              │
+│    • attn_out = scaled_dot_product_attention(Q, K, V, causal=True)│
+│    • attn_out = Linear_o(attn_out) + Dropout                      │
+│  x = x + attn_out  [Residual Connection 1]                        │
+│    ↓                                                                │
+│  x_norm2 = RMSNorm(x)                                              │
+│    ↓                                                                │
+│  SwiGLU Feedforward:                                               │
+│    • gate = SiLU(W1(x_norm2))                                      │
+│    • hidden = W3(x_norm2)                                          │
+│    • mlp_out = W2(gate * hidden) + Dropout                        │
+│  x = x + mlp_out  [Residual Connection 2]                         │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+  ↓
+Final Normalization: RMSNorm(x) → (B, T, n_embd)
+  ↓
+Language Model Head: Linear(x) → (B, T, vocab_size) [Weight-Tied with wte]
+  ↓
+Output Logits (Training) OR Logits[:, -1, :] (Inference)
+  ↓
+Loss Calculation (if targets provided):
+  • Flatten: logits → (B*T, vocab_size), targets → (B*T)
+  • Cross-Entropy Loss with ignore_index=-1
+```
+
+### Key Architecture Features
+
+#### 1. Pre-Norm Architecture
+- Normalization **before** each sub-layer (attention and feedforward)
+- More stable training than Post-Norm
+- Formula: `x = x + SubLayer(Norm(x))`
+
+#### 2. RoPE (Rotary Position Embeddings)
+- Applied **inside** attention mechanism (not as separate layer)
+- No learned positional parameters
+- Better length generalization
+- Applied to Q and K before attention computation
+
+#### 3. Grouped Query Attention (GQA)
+- Query heads: `n_head` (e.g., 6)
+- Key/Value heads: `n_kv_head` (e.g., 3)
+- Repetition factor: `n_rep = n_head / n_kv_head`
+- Memory efficient: reduces KV cache size by 2-4x
+
+#### 4. SwiGLU Activation
+- Three projection matrices: W1, W2, W3
+- Formula: `W2(SiLU(W1(x)) ⊙ W3(x))`
+- Better performance than standard GELU
+- Used in PaLM and LLaMA models
+
+#### 5. RMSNorm
+- Faster than LayerNorm (no mean centering)
+- Formula: `x * rsqrt(mean(x²) + ε) * γ`
+- Single learnable parameter: `weight (γ)`
+- ~10-15% faster than LayerNorm
+
+#### 6. Weight Tying
+- Token embeddings and output head share weights
+- Reduces parameters by ~vocab_size * n_embd
+- Formula: `lm_head.weight = wte.weight`
+
+#### 7. Optimization Features
+- Flash Attention support (when available)
+- Gradient Checkpointing option
+- Mixed Precision compatible (FP16/BF16)
+- KV-Cache for efficient generation
+
+### Data Flow Dimensions
+
+```
+Input: (Batch, Sequence) → (B, T)
+  ↓
+Embeddings: (B, T, n_embd)
+  ↓
+Attention Reshaping:
+  Q: (B, T, n_embd) → (B, n_head, T, head_dim)
+  K: (B, T, n_kv_head*head_dim) → (B, n_kv_head, T, head_dim)
+  V: (B, T, n_kv_head*head_dim) → (B, n_kv_head, T, head_dim)
+  ↓
+After Attention: (B, n_head, T, head_dim) → (B, T, n_embd)
+  ↓
+MLP: (B, T, n_embd) → (B, T, hidden_dim) → (B, T, n_embd)
+  ↓
+Final: (B, T, n_embd) → (B, T, vocab_size)
+```
+
+Where:
+- `B` = Batch size
+- `T` = Sequence length (context window)
+- `n_embd` = Embedding dimension
+- `n_head` = Number of query attention heads
+- `n_kv_head` = Number of key/value attention heads (for GQA)
+- `head_dim` = n_embd / n_head
+- `hidden_dim` = n_embd * mlp_ratio (typically 4.0)
+
+Note: The core architecture remains identical both while training and generating/inference, but the execution flow and some behaviors differ based on the mode.
+
 ## 🏗️ Architecture Details
 
 ### What Makes This Implementation Efficient?
