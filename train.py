@@ -97,9 +97,36 @@ if args.show_hardware:
 
 # Load configuration from file if specified
 config_keys = [k for k, v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str))]
-if os.path.exists(args.config):
-    exec(open(args.config).read())  # overrides from config file
-config = {k: globals()[k] for k in config_keys}  # will be useful for logging
+
+# Load default config first
+if os.path.exists('config/train_default.py'):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("default_config", 'config/train_default.py')
+    default_config = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(default_config)
+    # Update globals with default config values
+    for key in dir(default_config):
+        if not key.startswith('_') and isinstance(getattr(default_config, key), (int, float, bool, str)):
+            globals()[key] = getattr(default_config, key)
+
+# Override with custom config if specified
+if os.path.exists(args.config) and args.config != 'config/train_default.py':
+    import importlib.util
+    import sys
+    import os
+    
+    module_name = os.path.basename(args.config).replace('.py', '')
+    spec = importlib.util.spec_from_file_location(module_name, args.config)
+    custom_config = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = custom_config
+    spec.loader.exec_module(custom_config)
+    # Update globals with custom config values
+    for key in dir(custom_config):
+        if not key.startswith('_') and isinstance(getattr(custom_config, key), (int, float, bool, str)):
+            globals()[key] = getattr(custom_config, key)
+
+# Create config dictionary for logging
+config = {k: globals()[k] for k in config_keys if k in globals()}
 
 # Setup
 # =============================================================================

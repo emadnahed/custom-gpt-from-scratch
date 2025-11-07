@@ -17,42 +17,32 @@ from pathlib import Path
 def get_python_for_scripts():
     """
     Get the best Python executable to use for running scripts
-    Fallback implementation if utils not available
+    Uses the implementation from utils.python_utils
     """
-    import os
-
-    # Check if we're in a virtualenv
-    in_venv = (
-        hasattr(sys, 'real_prefix') or
-        (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix) or
-        os.environ.get('VIRTUAL_ENV')
-    )
-
-    # If in venv, use current Python
-    if in_venv:
-        return sys.executable, None
-
-    # If venv exists but not activated, use it
-    venv_paths = [
-        'venv/bin/python',
-        'venv/Scripts/python.exe',
-        '.venv/bin/python',
-        '.venv/Scripts/python.exe',
-    ]
-
-    for venv_path in venv_paths:
-        if os.path.exists(venv_path):
-            return os.path.abspath(venv_path), None
-
-    # No venv available - warn user
-    warning = (
-        "⚠️  Virtual environment not detected!\n"
-        "   For best results, activate the virtual environment:\n"
-        "   source venv/bin/activate  (Mac/Linux)\n"
-        "   venv\\Scripts\\activate     (Windows)"
-    )
-
-    return sys.executable, warning
+    try:
+        from utils.python_utils import get_venv_python, is_in_virtualenv
+        
+        python_path = get_venv_python()
+        warning = None
+        
+        if not is_in_virtualenv():
+            warning = (
+                "⚠️  Virtual environment not detected!\n"
+                "   For best results, activate the virtual environment:\n"
+                "   source venv/bin/activate  (Mac/Linux)\n"
+                "   venv\\Scripts\\activate     (Windows)"
+            )
+            
+        return python_path, warning
+        
+    except ImportError:
+        # Fallback if utils.python_utils is not available
+        warning = (
+            "⚠️  Could not import utils.python_utils\n"
+            "   Using system Python. For best results, install the package\n"
+            "   in development mode: pip install -e ."
+        )
+        return sys.executable, warning
 
 
 def print_header(text):
@@ -163,72 +153,63 @@ def prepare_custom_text():
             prepare_from_file(output_file)
 
 
+def _prepare_from_file_logic(file_path):
+    """Internal function to prepare dataset from a text file"""
+    import numpy as np
+    import pickle
+    from pathlib import Path
+
+    # Ensure output directory exists
+    output_dir = Path('data')
+    output_dir.mkdir(exist_ok=True)
+
+    # Read text
+    with open(file_path, 'r', encoding='utf-8') as f:
+        text = f.read()
+
+    # Get all unique characters
+    chars = sorted(list(set(text)))
+    vocab_size = len(chars)
+    print(f"Vocabulary size: {vocab_size} characters")
+
+    # Create mappings
+    stoi = {ch: i for i, ch in enumerate(chars)}
+    itos = {i: ch for i, ch in enumerate(chars)}
+
+    # Encode
+    data = np.array([stoi[c] for c in text], dtype=np.uint16)
+
+    # Split train/val (90/10)
+    n = len(data)
+    train_data = data[:int(n*0.9)]
+    val_data = data[int(n*0.9):]
+
+    # Save
+    train_data.tofile(output_dir / 'train.bin')
+    val_data.tofile(output_dir / 'val.bin')
+
+    # Save vocab
+    with open(output_dir / 'meta.pkl', 'wb') as f:
+        pickle.dump({'vocab_size': vocab_size, 'stoi': stoi, 'itos': itos}, f)
+
+    print(f"Train: {len(train_data):,} tokens")
+    print(f"Val: {len(val_data):,} tokens")
+    return True
+
 def prepare_from_file(file_path):
     """Prepare dataset from a text file"""
     print(f"\nPreparing dataset from {file_path}...")
-
-    # Simple preparation script (creates train.bin and val.bin)
-    code = f"""
-import os
-import numpy as np
-
-# Read text
-with open('{file_path}', 'r', encoding='utf-8') as f:
-    text = f.read()
-
-# Get all unique characters
-chars = sorted(list(set(text)))
-vocab_size = len(chars)
-print(f"Vocabulary size: {{vocab_size}} characters")
-
-# Create mappings
-stoi = {{ch: i for i, ch in enumerate(chars)}}
-itos = {{i: ch for i, ch in enumerate(chars)}}
-
-# Encode
-data = np.array([stoi[c] for c in text], dtype=np.uint16)
-
-# Split train/val (90/10)
-n = len(data)
-train_data = data[:int(n*0.9)]
-val_data = data[int(n*0.9):]
-
-# Save
-train_data.tofile('data/train.bin')
-val_data.tofile('data/val.bin')
-
-# Save vocab
-import pickle
-with open('data/meta.pkl', 'wb') as f:
-    pickle.dump({{'vocab_size': vocab_size, 'stoi': stoi, 'itos': itos}}, f)
-
-print(f"Train: {{len(train_data):,}} tokens")
-print(f"Val: {{len(val_data):,}} tokens")
-print("✓ Dataset prepared!")
-"""
-
-    # Run preparation
-    import tempfile
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-        f.write(code)
-        temp_script = f.name
-
-    # Get correct Python executable
-    python_cmd, warning = get_python_for_scripts()
-
-    if warning:
-        print(warning)
-        print()
-
+    
     try:
-        subprocess.run([python_cmd, temp_script], check=True)
-        os.unlink(temp_script)
-        print("\n✓ Dataset prepared successfully!")
-    except subprocess.CalledProcessError:
-        print("\n✗ Failed to prepare dataset")
+        success = _prepare_from_file_logic(file_path)
+        if success:
+            print("\n✓ Dataset prepared successfully!")
+    except Exception as e:
+        print(f"\n✗ Failed to prepare dataset: {str(e)}")
         print("Make sure dependencies are installed:")
         print("  pip install -r requirements.txt")
-        os.unlink(temp_script)
+        return False
+    return True
 
 
 def manage_datasets():
@@ -283,8 +264,15 @@ def manage_datasets():
                     with open('data/meta.pkl', 'rb') as f:
                         meta = pickle.load(f)
                         print(f"  Vocabulary size: {meta['vocab_size']}")
-                except:
-                    pass
+                except (FileNotFoundError, KeyError, pickle.PickleError) as e:
+                    # Handle specific exceptions:
+                    # - FileNotFoundError: meta.pkl doesn't exist
+                    # - KeyError: 'vocab_size' key not in meta
+                    # - pickle.PickleError: Error loading pickle file
+                    print(f"  Could not load vocabulary info: {e}")
+                    # You might want to log this for debugging:
+                    # import logging
+                    # logging.debug(f"Failed to load vocab info: {e}", exc_info=True)
             else:
                 print("\n⚠ No dataset prepared")
 

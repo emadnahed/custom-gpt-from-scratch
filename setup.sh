@@ -86,8 +86,28 @@ if [ ! -z "$NEED_PYTHON" ]; then
             PYTHON_CMD="python3.11"
         elif command -v yum &> /dev/null; then
             # RedHat/CentOS
-            echo "Using yum to install Python..."
-            sudo yum install -y python3.11
+            echo "Using yum to install Python and development tools..."
+            # Enable EPEL repository for additional packages
+            if ! yum repolist | grep -q "^epel"; then
+                echo "Enabling EPEL repository..."
+                sudo yum install -y epel-release
+            fi
+            
+            # Install Python 3.11 and development packages
+            echo "Installing Python 3.11 and development tools..."
+            if ! sudo yum install -y python3.11 python3.11-devel python3.11-pip python3.11-venv gcc make; then
+                echo -e "${YELLOW}Python 3.11 not found in default repositories. Trying to enable SCL...${NC}"
+                # Try Software Collections (SCL) for newer Python versions
+                if ! command -v scl &> /dev/null; then
+                    echo "Installing Software Collections (SCL)..."
+                    sudo yum install -y centos-release-scl
+                fi
+                sudo yum install -y rh-python311 rh-python311-python-devel
+                echo "To use Python 3.11, run: source /opt/rh/rh-python311/enable"
+                PYTHON_CMD="/opt/rh/rh-python311/root/usr/bin/python3.11"
+            else
+                PYTHON_CMD="python3.11"
+            fi
             PYTHON_CMD="python3.11"
         else
             echo -e "${RED}✗ Cannot auto-install Python on this Linux distribution${NC}"

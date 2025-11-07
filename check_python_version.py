@@ -7,6 +7,8 @@ Recommended: Python 3.11
 Minimum: Python 3.8
 """
 
+import shutil
+import subprocess
 import sys
 
 
@@ -62,13 +64,16 @@ def check_python_version(min_version=(3, 8), recommended_version=(3, 11)):
 
 
 def get_python_command_suggestion():
-    """Suggest the right Python command to use"""
-    import shutil
-
+    """
+    Suggest the right Python command to use
+    
+    Returns:
+        tuple or None: (command, version) of the best Python version found, or None if none found
+    """
     print("Available Python commands on your system:")
     print()
 
-    # Check for different Python versions
+    # Check for different Python versions in order of preference
     python_commands = [
         'python3.11',
         'python3.10',
@@ -82,17 +87,18 @@ def get_python_command_suggestion():
     for cmd in python_commands:
         if shutil.which(cmd):
             try:
-                import subprocess
                 result = subprocess.run(
                     [cmd, '--version'],
                     capture_output=True,
-                    text=True
+                    text=True,
+                    check=True
                 )
                 version = result.stdout.strip() or result.stderr.strip()
                 available.append((cmd, version))
                 print(f"  ✓ {cmd}: {version}")
-            except:
-                pass
+            except (subprocess.SubprocessError, OSError):
+                # Skip if command fails
+                continue
 
     if not available:
         print("  ❌ No Python found!")

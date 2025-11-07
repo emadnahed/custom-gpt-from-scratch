@@ -265,8 +265,7 @@ custom-gpt-from-scratch/
 │
 ├── 🎯 Traditional Scripts (Still Work)
 │   ├── train.py                   # Training script
-│   ├── sample.py                  # Text generation
-│   ├── generate_demo.py           # Simple generation
+│   ├── generate_demo.py           # Simple text generation
 │   └── check_hardware.py          # Hardware checker
 │
 ├── 📦 Output

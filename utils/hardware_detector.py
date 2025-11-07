@@ -120,12 +120,23 @@ class HardwareDetector:
                 available=False,
                 details="ROCm not available or no AMD GPU detected"
             )
-        except Exception:
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            # Expected exceptions when ROCm tools are not available
             return HardwareDevice(
                 type=HardwareType.ROCM,
                 name="AMD ROCm",
                 available=False,
-                details="ROCm detection failed"
+                details=f"ROCm tools not found: {str(e)}"
+            )
+        except Exception as e:
+            # Log unexpected errors for debugging
+            import logging
+            logging.warning(f"Unexpected error during ROCm detection: {str(e)}", exc_info=True)
+            return HardwareDevice(
+                type=HardwareType.ROCM,
+                name="AMD ROCm",
+                available=False,
+                details=f"ROCm detection failed: {str(e)}"
             )
 
     def _detect_mps(self) -> HardwareDevice:
