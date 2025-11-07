@@ -19,12 +19,21 @@ def load_prepared_dataset(data_dir: str = 'data', split: str = 'train') -> Tuple
         split: Dataset split to load ('train' or 'val')
     """
     split_path = os.path.join(data_dir, f'{split}.bin')
+    # Try meta.pkl first (new format), fallback to vocab.pkl (legacy format)
+    meta_path = os.path.join(data_dir, 'meta.pkl')
     vocab_path = os.path.join(data_dir, 'vocab.pkl')
 
     data = np.fromfile(split_path, dtype=np.uint16)
 
-    with open(vocab_path, 'rb') as f:
-        vocab = pickle.load(f)
+    # Load vocabulary metadata
+    if os.path.exists(meta_path):
+        with open(meta_path, 'rb') as f:
+            vocab = pickle.load(f)
+    elif os.path.exists(vocab_path):
+        with open(vocab_path, 'rb') as f:
+            vocab = pickle.load(f)
+    else:
+        raise FileNotFoundError(f"Neither {meta_path} nor {vocab_path} found")
 
     return data, vocab
 

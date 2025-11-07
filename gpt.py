@@ -18,7 +18,28 @@ import sys
 import argparse
 import subprocess
 from pathlib import Path
-from gpt_from_scratch.utils.python_utils import is_in_virtualenv, get_venv_python
+
+# Lazy imports to avoid requiring dependencies before setup
+def _lazy_import_utils():
+    """Lazily import utilities to handle missing dependencies gracefully"""
+    try:
+        from gpt_from_scratch.utils.python_utils import is_in_virtualenv, get_venv_python
+        return is_in_virtualenv, get_venv_python
+    except ImportError as e:
+        # If imports fail, provide fallback implementations
+        def is_in_virtualenv_fallback():
+            return bool(os.environ.get('VIRTUAL_ENV'))
+
+        def get_venv_python_fallback():
+            venv_paths = ['venv/bin/python', 'venv/Scripts/python.exe']
+            for path in venv_paths:
+                if os.path.exists(path):
+                    return os.path.abspath(path)
+            return sys.executable
+
+        return is_in_virtualenv_fallback, get_venv_python_fallback
+
+is_in_virtualenv, get_venv_python = _lazy_import_utils()
 
 # Check Python version early
 if sys.version_info < (3, 8):
@@ -86,21 +107,15 @@ def print_warning(text):
 def run_python_script(script_path, args=None):
     """
     Run a Python script with the best available Python interpreter
-    
+
     Args:
         script_path: Path to the Python script to run
         args: Optional list of command-line arguments to pass to the script
-        
+
     Returns:
         bool: True if the script ran successfully, False otherwise
     """
-    try:
-        from utils.python_utils import get_venv_python
-        python_cmd = get_venv_python()
-    except ImportError:
-        print_error("Could not import utils.python_utils")
-        print_info("Make sure to install the package in development mode: pip install -e .")
-        return False
+    python_cmd = get_venv_python()
 
     cmd = [python_cmd, script_path]
     if args:

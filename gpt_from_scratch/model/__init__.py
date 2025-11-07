@@ -1,7 +1,7 @@
-""
+"""
 GPT model implementation
 """
 
-from .transformer import GPT, GPTConfig, GPT1Config, GPT2Config, GPT3Config
+from .transformer import GPT, GPTConfig, create_model
 
-__all__ = ['GPT', 'GPTConfig', 'GPT1Config', 'GPT2Config', 'GPT3Config']
+__all__ = ['GPT', 'GPTConfig', 'create_model']

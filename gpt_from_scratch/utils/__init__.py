@@ -1,14 +1,12 @@
-""
+"""
 Utility functions and helpers
 """
 
 from .python_utils import (
     is_in_virtualenv,
     get_venv_python,
-    setup_logging,
-    set_seed,
-    count_parameters,
-    get_git_revision_hash,
+    get_python_for_scripts,
+    check_dependencies,
 )
 
 from .hardware_detector import HardwareDetector, HardwareDevice, HardwareType
@@ -16,10 +14,8 @@ from .hardware_detector import HardwareDetector, HardwareDevice, HardwareType
 __all__ = [
     'is_in_virtualenv',
     'get_venv_python',
-    'setup_logging',
-    'set_seed',
-    'count_parameters',
-    'get_git_revision_hash',
+    'get_python_for_scripts',
+    'check_dependencies',
     'HardwareDetector',
     'HardwareDevice',
     'HardwareType',

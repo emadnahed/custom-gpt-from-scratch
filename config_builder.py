@@ -228,8 +228,8 @@ def write_config_file(path, config):
 
         # Optimizer
         f.write(f"# Optimizer\n")
-        f.write(f"learning_rate = {config['learning_rate']}\n")
-        f.write(f"weight_decay = {config['weight_decay']}\n")
+        f.write(f"learning_rate = {config['learning_rate']:.1e}\n")
+        f.write(f"weight_decay = {config['weight_decay']:.1e}\n")
         f.write(f"beta1 = {config['beta1']}\n")
         f.write(f"beta2 = {config['beta2']}\n")
         f.write(f"grad_clip = {config['grad_clip']}\n\n")
@@ -239,7 +239,7 @@ def write_config_file(path, config):
         f.write(f"decay_lr = {config['decay_lr']}\n")
         f.write(f"warmup_iters = {config['warmup_iters']}\n")
         f.write(f"lr_decay_iters = {config['lr_decay_iters']}\n")
-        f.write(f"min_lr = {config['min_lr']}\n\n")
+        f.write(f"min_lr = {config['min_lr']:.1e}\n\n")
 
         # Hardware
         f.write(f"# Hardware\n")
@@ -260,7 +260,7 @@ def write_config_file(path, config):
 def interactive_config_builder():
     """Run the interactive config builder standalone"""
     try:
-        from utils.hardware_detector import HardwareDetector, auto_detect_device
+        from gpt_from_scratch.utils.hardware_detector import HardwareDetector, auto_detect_device
 
         # Auto-detect hardware
         device, dtype = auto_detect_device()

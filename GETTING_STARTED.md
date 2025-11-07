@@ -2,6 +2,8 @@
 
 Complete guide for training your GPT model from scratch.
 
+> **Note:** This project has been recently updated with critical fixes. All import paths have been corrected, the codebase is now properly structured as a Python package, and comprehensive testing has been completed. See `CHANGELOG_FIXES.md` for details.
+
 ---
 
 ## 📋 Table of Contents
@@ -131,7 +133,7 @@ python gpt.py hardware
 
 ### Virtual Environment Usage
 
-**Important:** The system now works whether you activate venv or not!
+**Important:** The system now works whether you activate venv or not! ✨
 
 **Option 1: Activate venv (Recommended - cleaner output)**
 ```bash
@@ -142,12 +144,13 @@ venv\Scripts\activate     # Windows
 python gpt.py train
 ```
 
-**Option 2: Don't activate (Still works!)**
+**Option 2: Don't activate (Still works!) - NEW**
 ```bash
 # System automatically uses venv Python
 python3 gpt.py train
 
-# You'll see a friendly warning, but it works!
+# Recent fix: Lazy imports with fallback ensure it works without activation!
+# No more "ModuleNotFoundError: No module named 'torch'"
 ```
 
 ---
@@ -337,18 +340,27 @@ model_preset = 'tiny'
 
 #### "No module named 'torch'"
 
-**Solution 1: Activate venv**
+**This has been fixed!** The system now works without activating venv.
+
+**If you still see this error:**
+
+**Solution 1: Use python3 instead of python**
+```bash
+python3 gpt.py hardware  # Works without venv activation!
+```
+
+**Solution 2: Activate venv (for cleaner output)**
 ```bash
 source venv/bin/activate  # Mac/Linux
 venv\Scripts\activate     # Windows
 ```
 
-**Solution 2: Reinstall dependencies**
+**Solution 3: Reinstall dependencies (if really needed)**
 ```bash
 pip install -r requirements.txt
 ```
 
-**Note:** If using `python3 gpt.py` (without activating venv), this should now work automatically!
+**Technical note:** Recent fix implemented lazy imports with fallback functions, so the CLI works even when torch isn't in the global Python path!
 
 #### "MPS errors on Mac"
 
@@ -518,19 +530,19 @@ python gpt.py train
 
 ```
 custom-gpt-from-scratch/
-├── gpt_from_scratch/        # Main Python package
+├── gpt_from_scratch/        # Main Python package (properly structured!)
 │   ├── __init__.py
 │   ├── cli.py               # Optional packaged CLI
 │   ├── model/               # Model implementation
 │   │   ├── __init__.py
-│   │   └── transformer.py   # GPT implementation
-│   ├── utils/               # Utilities (single source of truth)
+│   │   └── transformer.py   # GPT implementation with RoPE, GQA, SwiGLU
+│   ├── utils/               # Utilities (single source of truth - cleaned up!)
 │   │   ├── __init__.py
-│   │   ├── hardware_detector.py
-│   │   └── python_utils.py
+│   │   ├── hardware_detector.py  # Cross-platform hardware detection
+│   │   └── python_utils.py       # Python environment helpers
 │   └── data/
 │       ├── __init__.py
-│       └── utils.py         # Data loading helpers
+│       └── utils.py         # Data loading (supports both meta.pkl & vocab.pkl)
 │
 ├── gpt.py                   # Main command center (use this!)
 ├── train.py                 # Training script
