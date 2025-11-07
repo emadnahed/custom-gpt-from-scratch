@@ -6,7 +6,6 @@ Easy interface for generating text from your trained model
 
 import os
 import torch
-import pickle
 from model.transformer import GPT
 
 
@@ -45,8 +44,14 @@ def interactive_generate():
         print(f"✓ Model loaded! Parameters: {sum(p.numel() for p in model.parameters())/1e6:.2f}M")
         print(f"✓ Vocabulary size: {len(itos)}")
 
-    except Exception as e:
+    except (FileNotFoundError, KeyError, RuntimeError) as e:
         print(f"✗ Failed to load model: {e}")
+        if isinstance(e, FileNotFoundError):
+            print("  - The model checkpoint file was not found")
+        elif isinstance(e, KeyError):
+            print("  - The checkpoint file is missing required keys")
+        elif 'UnicodeDecodeError' in str(e):
+            print("  - The checkpoint file is corrupted or in an unexpected format")
         return
 
     # Generation loop

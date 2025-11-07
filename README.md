@@ -228,53 +228,54 @@ See `QUICK_REFERENCE.md` for complete command documentation.
 ```
 custom-gpt-from-scratch/
 │
-├── 🎮 Main Commands (Your Interface)
-│   ├── gpt.py                     # Command center (use this!)
-│   ├── setup.sh / setup.bat       # Automated setup scripts
-│   └── scripts.json               # Available commands reference
-│
-├── 📚 Documentation
-│   ├── START_HERE.md              # Ultra quick start
-│   ├── QUICK_REFERENCE.md         # Command cheat sheet
-│   ├── GETTING_STARTED.md         # Comprehensive guide
-│   ├── HARDWARE_FEATURE_SUMMARY.md # Hardware features
-│   └── README.md                  # This file
-│
-├── ⚙️ Configuration & Management
-│   ├── config_builder.py          # Interactive config creator
-│   ├── dataset_manager.py         # Dataset management
-│   ├── generate_interactive.py    # Interactive text generation
-│   └── config/                    # Training configurations
-│       ├── train_default.py
-│       ├── train_demo.py
-│       └── train_*.py             # Your custom configs
-│
-├── 🧠 Core Components
-│   ├── model/                     # Model architecture
+├── gpt_from_scratch/        # Main Python package
+│   ├── __init__.py          # Package initialization
+│   ├── cli.py               # Command-line interface
+│   ├── model/               # Model architecture
 │   │   ├── __init__.py
-│   │   └── transformer.py         # GPT implementation
-│   │
-│   ├── utils/                     # Utility modules
+│   │   └── transformer.py   # GPT implementation
+│   ├── utils/               # Utility modules
 │   │   ├── __init__.py
-│   │   └── hardware_detector.py   # Hardware detection
-│   │
-│   └── data/                      # Datasets
-│       ├── prepare.py             # Data preparation
-│       ├── train.bin              # Prepared training data
-│       └── val.bin                # Validation data
+│   │   ├── hardware_detector.py  # Hardware detection
+│   │   └── python_utils.py  # Python utilities
+│   └── data/                # Data processing
+│       └── __init__.py
 │
-├── 🎯 Traditional Scripts (Still Work)
-│   ├── train.py                   # Training script
-│   ├── generate_demo.py           # Simple text generation
-│   └── check_hardware.py          # Hardware checker
+├── config/                  # Training configurations
+│   ├── train_default.py     # Default training config
+│   ├── train_demo.py        # Demo configuration
+│   └── train_*.py           # Custom configurations
 │
-├── 📦 Output
-│   └── out/                       # Trained models
-│       └── ckpt.pt                # Your trained model!
+├── data/                    # Data directory
+│   └── prepare.py           # Data preparation script
 │
-└── 🔧 Setup
-    ├── requirements.txt           # Python dependencies
-    └── venv/                      # Virtual environment
+├── scripts/                 # Additional scripts
+│   └── scripts.json         # Command references
+│
+├── out/                     # Training outputs (created during training)
+│   └── ckpt.pt             # Saved model checkpoints
+│
+├── .claude/                 # IDE/editor configuration
+│   └── settings.local.json
+│
+├── utils/                   # Additional utilities
+│   ├── __init__.py
+│   ├── hardware_detector.py
+│   └── python_utils.py
+│
+├── check_hardware.py        # Hardware detection script
+├── check_python_version.py  # Python version checker
+├── config_builder.py        # Interactive config builder
+├── dataset_manager.py       # Dataset management
+├── generate_demo.py         # Text generation demo
+├── generate_interactive.py  # Interactive generation
+├── gpt.py                   # Main entry point
+├── requirements.txt         # Python dependencies
+├── setup.py                 # Package installation
+├── setup.sh                 # Setup script (Linux/macOS)
+├── setup.bat                # Setup script (Windows)
+├── test_system.py           # System test
+└── train.py                 # Training script
 ```
 
 ## 🚦 Getting Started

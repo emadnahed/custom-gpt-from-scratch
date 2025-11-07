@@ -68,7 +68,7 @@ def get_python_command_suggestion():
     Suggest the right Python command to use
     
     Returns:
-        tuple or None: (command, version) of the best Python version found, or None if none found
+        str or None: The command of the best Python version found, or None if none found
     """
     print("Available Python commands on your system:")
     print()

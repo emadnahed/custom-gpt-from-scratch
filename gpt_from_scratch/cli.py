@@ -1,8 +1,9 @@
-""
+"""
 Command-line interface for GPT from Scratch
 """
 import os
 import sys
+import subprocess
 import argparse
 from pathlib import Path
 from typing import Optional, List

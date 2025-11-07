@@ -6,12 +6,12 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="gpt-from-scratch",
     version="0.1.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="emadnahed",
+    author_email="emadnahed@example.com",
     description="A from-scratch implementation of GPT model",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/custom-gpt-from-scratch",
+    url="https://github.com/emadnahed/custom-gpt-from-scratch",
     packages=find_packages(include=['gpt_from_scratch', 'gpt_from_scratch.*']),
     python_requires=">=3.8",
     install_requires=[

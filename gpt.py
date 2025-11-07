@@ -164,7 +164,8 @@ def cmd_train(args):
             prepare = input("Prepare Shakespeare dataset now? (y/n): ").strip().lower()
             if prepare == 'y':
                 print_info("Preparing Shakespeare dataset...")
-                subprocess.run(['venv/bin/python', 'data/prepare.py'], check=True)
+                python = get_venv_python()
+                subprocess.run([python, 'data/prepare.py'], check=True)
                 datasets = list_available_datasets()
 
         print("\nAvailable datasets:")
