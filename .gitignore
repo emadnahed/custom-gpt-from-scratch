@@ -8,6 +8,7 @@ __pycache__/
 # Virtual env
 venv/
 .env
+venv310/
 
 # Data & outputs
 data/*.bin

@@ -502,7 +502,7 @@ class GPT(nn.Module):
 # Utility Functions
 # ============================================================================
 
-def create_model(preset: str = 'tiny') -> GPT:
+def create_model(preset: str = 'tiny') -> 'GPT':
     """
     Create a model with preset configurations
 
@@ -561,10 +561,6 @@ def create_model(preset: str = 'tiny') -> GPT:
     config = GPTConfig(**presets[preset])
     return GPT(config)
 
-
-# ============================================================================
-# Example Usage
-# ============================================================================
 
 if __name__ == "__main__":
     # Create a small model

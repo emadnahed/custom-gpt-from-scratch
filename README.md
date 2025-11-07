@@ -35,6 +35,43 @@ This project implements a highly optimized GPT (Generative Pre-trained Transform
 
 ## 🛠️ Installation
 
+### Python Requirements
+
+**Recommended:** Python 3.11
+**Minimum:** Python 3.8
+**Check your version:** `python3 --version`
+
+```bash
+# If you have multiple Python versions, use the specific one:
+python3.11 --version           # Check if 3.11 is available
+python3.11 -m venv venv        # Create venv with 3.11
+python3.11 gpt.py info         # Use 3.11 for all commands
+
+# Or check which version to use:
+python check_python_version.py
+```
+
+### Automated Setup (Easiest!)
+
+```bash
+# One command setup (Mac/Linux)
+./setup.sh
+
+# Or on Windows
+setup.bat
+```
+
+The setup script automatically:
+- Checks/installs Python (if needed)
+- Verifies Python version (3.11 recommended)
+- Creates virtual environment
+- Installs dependencies
+- Detects hardware
+- Prepares dataset
+- Gets you ready to train!
+
+### Manual Installation
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/emadnahed/custom-gpt-from-scratch.git
@@ -52,25 +89,186 @@ This project implements a highly optimized GPT (Generative Pre-trained Transform
    pip install -r requirements.txt
    ```
 
+## 🖥️ Hardware Auto-Detection
+
+This project includes comprehensive hardware detection for seamless training across different platforms:
+
+### Supported Hardware
+
+- **NVIDIA CUDA** - NVIDIA GPUs with CUDA support
+- **AMD ROCm** - AMD GPUs on Linux
+- **Apple Metal (MPS)** - Apple Silicon (M1/M2/M3)
+- **Intel XPU** - Intel GPUs with Intel Extension for PyTorch
+- **CPU** - Universal fallback
+
+### Quick Hardware Check
+
+Check what hardware is available on your system:
+
+```bash
+# Show all detected hardware
+python check_hardware.py
+
+# Interactive hardware selection
+python check_hardware.py --interactive
+
+# Show only recommended device
+python check_hardware.py --recommended
+
+# JSON output for scripting
+python check_hardware.py --json
+```
+
+### Using with Training
+
+The training script automatically detects and uses the best available hardware:
+
+```bash
+# Auto-detect hardware (recommended)
+python train.py
+
+# Interactively choose hardware
+python train.py --interactive
+
+# Show hardware options without training
+python train.py --show-hardware
+```
+
+### Hardware Detection Features
+
+- Automatic detection of best available hardware
+- Display of available and unavailable hardware (color-coded)
+- Device capabilities (memory, compute capability, precision support)
+- Optimal precision selection (bfloat16, float16, float32)
+- Platform-specific optimizations
+
+For detailed information, see:
+- `START_HERE.md` - Ultra quick start guide
+- `GETTING_STARTED.md` - Comprehensive beginner's guide
+- `HARDWARE_FEATURE_SUMMARY.md` - Hardware detection features
+
+## 🎮 Command Center (Like npm scripts!)
+
+This project includes an intuitive command center (`gpt.py`) - think of it as your "package.json scripts" for GPT training!
+
+### Quick Commands
+
+```bash
+# Most used commands (like npm run)
+python gpt.py train          # Interactive training setup
+python gpt.py generate       # Generate text from trained model
+python gpt.py info           # Check your setup status
+python gpt.py hardware       # View available hardware
+
+# Management commands
+python gpt.py config         # Create custom configurations
+python gpt.py dataset        # Manage datasets (add/prepare/switch)
+```
+
+### Interactive Training Workflow
+
+```bash
+python gpt.py train
+
+# You'll be asked:
+# 1. Which hardware? (auto-detected!)
+# 2. Which dataset? (Shakespeare, or your own)
+# 3. Model size? (tiny/small/medium/large or custom)
+# 4. Number of layers? (4, 8, 12, 24, or custom)
+# 5. How long? (quick/short/medium/long)
+# 6. Start now? (yes!)
+```
+
+### Custom Model Architecture
+
+Easily customize the number of layers and other parameters:
+
+```bash
+python gpt.py config
+
+# When prompted:
+# - Choose custom architecture
+# - Set n_layer (number of transformer layers):
+#   * 4 layers: Fast, good for testing
+#   * 8 layers: Balanced
+#   * 12 layers: Good quality (recommended)
+#   * 24 layers: Best quality (needs good hardware)
+# - Adjust other parameters (heads, embedding size, etc.)
+```
+
+### Dataset Management
+
+```bash
+python gpt.py dataset
+
+# Options:
+# 1. List available datasets
+# 2. Prepare Shakespeare (default)
+# 3. Add your own text file
+# 4. View dataset info
+```
+
+### Traditional Commands (Still Supported)
+
+```bash
+# Traditional training
+python train.py --config config/my_config.py
+
+# Traditional generation
+python generate_demo.py
+
+# Hardware check
+python check_hardware.py
+```
+
+See `QUICK_REFERENCE.md` for complete command documentation.
+
 ## 🏗️ Project Structure
 
 ```
 custom-gpt-from-scratch/
 │
-├── data/                 # Data loading and preprocessing
-│   └── prepare.py        # Data preparation scripts
+├── gpt_from_scratch/        # Main Python package
+│   ├── __init__.py          # Package initialization
+│   ├── cli.py               # Command-line interface
+│   ├── model/               # Model architecture
+│   │   ├── __init__.py
+│   │   └── transformer.py   # GPT implementation
+│   ├── utils/               # Utility modules
+│   │   ├── __init__.py
+│   │   ├── hardware_detector.py  # Hardware detection
+│   │   └── python_utils.py  # Python utilities
+│   └── data/                # Data processing
+│       ├── __init__.py
+│       └── utils.py
 │
-├── model/                # Model architecture
-│   ├── __init__.py
-│   └── transformer.py    # Core transformer implementation
+├── config/                  # Training configurations
+│   ├── train_default.py     # Default training config
+│   ├── train_demo.py        # Demo configuration
+│   └── train_*.py           # Custom configurations
 │
-├── config/               # Configuration files
-│   └── train_default.py  # Default training configuration
+├── data/                    # Data directory
+│   └── prepare.py           # Data preparation script
 │
-├── train.py              # Training script
-├── sample.py             # Text generation script
-├── requirements.txt      # Project dependencies
-└── README.md
+├── out/                     # Training outputs (created during training)
+│   └── ckpt.pt             # Saved model checkpoints
+│
+├── .claude/                 # IDE/editor configuration
+│   └── settings.local.json
+│
+├── check_hardware.py        # Hardware detection script
+├── check_python_version.py  # Python version checker
+├── config_builder.py        # Interactive config builder
+├── dataset_manager.py       # Dataset management
+├── generate_demo.py         # Text generation demo
+├── generate_interactive.py  # Interactive generation
+├── gpt.py                   # Main entry point
+├── requirements.txt         # Python dependencies
+├── setup.py                 # Package installation
+├── setup.sh                 # Setup script (Linux/macOS)
+├── setup.bat                # Setup script (Windows)
+├── test_system.py           # System test
+└── train.py                 # Training script
 ```
 
 ## 🚦 Getting Started
@@ -421,7 +619,7 @@ gradient_checkpointing = True  # If OOM
 Instead of using presets, you can define custom architectures:
 
 ```python
-from model.transformer import GPT, GPTConfig
+from gpt_from_scratch.model import GPT, GPTConfig
 
 config = GPTConfig(
     block_size=512,
@@ -440,7 +638,7 @@ model = GPT(config)
 
 ```python
 import torch
-from model.transformer import GPT, create_model
+from gpt_from_scratch.model import GPT, create_model
 
 # Create a model
 model = create_model('small')
@@ -471,7 +669,7 @@ The training script outputs Model FLOPS Utilization (MFU), which estimates how e
 
 ```python
 import torch
-from model.transformer import GPT
+from gpt_from_scratch.model import GPT
 
 # Load checkpoint
 checkpoint = torch.load('out/ckpt.pt')
@@ -490,7 +688,7 @@ itos = vocab['itos']  # int to string
 Test the model implementation:
 
 ```bash
-python model/transformer.py
+python -m gpt_from_scratch.model.transformer
 ```
 
 This runs a forward pass and generation test to verify everything works.
