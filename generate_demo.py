@@ -5,7 +5,7 @@ Simple text generation demo script
 import os
 import sys
 import torch
-from model.transformer import GPT
+from gpt_from_scratch.model import GPT
 
 # Check if checkpoint exists
 checkpoint_path = 'out/ckpt.pt'

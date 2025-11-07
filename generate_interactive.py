@@ -6,7 +6,7 @@ Easy interface for generating text from your trained model
 
 import os
 import torch
-from model.transformer import GPT
+from gpt_from_scratch.model import GPT
 
 
 def print_header(text):

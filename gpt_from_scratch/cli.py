@@ -57,26 +57,22 @@ def run_python_script(script_path: str, args: Optional[List[str]] = None) -> int
 def cmd_train(args: argparse.Namespace) -> int:
     """Interactive training command"""
     print_header("Starting Training")
-    from .train import main as train_main
-    return train_main(args)
+    return run_python_script('train.py', [f"--config={args.config}"] if getattr(args, 'config', None) else None)
 
 def cmd_generate(args: argparse.Namespace) -> int:
     """Interactive generation command"""
     print_header("Text Generation")
-    from .generate import main as generate_main
-    return generate_main(args)
+    return run_python_script('generate_interactive.py')
 
 def cmd_config(args: argparse.Namespace) -> int:
     """Create/edit configuration"""
     print_header("Configuration")
-    from .config_builder import main as config_main
-    return config_main(args)
+    return run_python_script('config_builder.py')
 
 def cmd_dataset(args: argparse.Namespace) -> int:
     """Manage datasets"""
     print_header("Dataset Management")
-    from .dataset_manager import main as dataset_main
-    return dataset_main(args)
+    return run_python_script('dataset_manager.py')
 
 def cmd_hardware(args: argparse.Namespace) -> int:
     """Check hardware"""

@@ -11,7 +11,7 @@ import argparse
 import pickle
 import torch
 
-from model.transformer import GPT, GPTConfig
+from gpt_from_scratch.model import GPT, GPTConfig
 
 
 def sample(

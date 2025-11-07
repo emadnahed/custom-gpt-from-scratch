@@ -14,7 +14,7 @@ import argparse
 import json
 import sys
 
-from utils.hardware_detector import HardwareDetector, interactive_device_selection
+from gpt_from_scratch.utils.hardware_detector import HardwareDetector, interactive_device_selection
 
 
 def main():

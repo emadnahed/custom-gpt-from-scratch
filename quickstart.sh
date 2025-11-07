@@ -60,7 +60,7 @@ echo ""
 
 # Step 5: Check hardware
 echo -e "${BLUE}Step 5: Detecting hardware...${NC}"
-python3 check_hardware.py
+python check_hardware.py
 echo ""
 
 # Step 6: Prepare data
@@ -70,7 +70,7 @@ if [ -f "data/train.bin" ] && [ -f "data/val.bin" ]; then
 else
     echo "Preparing Shakespeare dataset..."
     cd data
-    python3 prepare.py
+    python prepare.py
     cd ..
     echo -e "${GREEN}✓ Dataset prepared${NC}"
 fi
@@ -82,10 +82,10 @@ echo -e "${GREEN}Setup Complete! Ready to train.${NC}"
 echo "=================================================="
 echo ""
 echo "To start training, run:"
-echo "  python3 train.py"
+echo "  python train.py"
 echo ""
 echo "Or for interactive hardware selection:"
-echo "  python3 train.py --interactive"
+echo "  python train.py --interactive"
 echo ""
 echo "For help, see:"
 echo "  - GETTING_STARTED.md (comprehensive guide)"

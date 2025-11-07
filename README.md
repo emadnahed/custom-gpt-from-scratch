@@ -239,7 +239,8 @@ custom-gpt-from-scratch/
 │   │   ├── hardware_detector.py  # Hardware detection
 │   │   └── python_utils.py  # Python utilities
 │   └── data/                # Data processing
-│       └── __init__.py
+│       ├── __init__.py
+│       └── utils.py
 │
 ├── config/                  # Training configurations
 │   ├── train_default.py     # Default training config
@@ -249,19 +250,11 @@ custom-gpt-from-scratch/
 ├── data/                    # Data directory
 │   └── prepare.py           # Data preparation script
 │
-├── scripts/                 # Additional scripts
-│   └── scripts.json         # Command references
-│
 ├── out/                     # Training outputs (created during training)
 │   └── ckpt.pt             # Saved model checkpoints
 │
 ├── .claude/                 # IDE/editor configuration
 │   └── settings.local.json
-│
-├── utils/                   # Additional utilities
-│   ├── __init__.py
-│   ├── hardware_detector.py
-│   └── python_utils.py
 │
 ├── check_hardware.py        # Hardware detection script
 ├── check_python_version.py  # Python version checker
@@ -626,7 +619,7 @@ gradient_checkpointing = True  # If OOM
 Instead of using presets, you can define custom architectures:
 
 ```python
-from model.transformer import GPT, GPTConfig
+from gpt_from_scratch.model import GPT, GPTConfig
 
 config = GPTConfig(
     block_size=512,
@@ -645,7 +638,7 @@ model = GPT(config)
 
 ```python
 import torch
-from model.transformer import GPT, create_model
+from gpt_from_scratch.model import GPT, create_model
 
 # Create a model
 model = create_model('small')
@@ -676,7 +669,7 @@ The training script outputs Model FLOPS Utilization (MFU), which estimates how e
 
 ```python
 import torch
-from model.transformer import GPT
+from gpt_from_scratch.model import GPT
 
 # Load checkpoint
 checkpoint = torch.load('out/ckpt.pt')
@@ -695,7 +688,7 @@ itos = vocab['itos']  # int to string
 Test the model implementation:
 
 ```bash
-python model/transformer.py
+python -m gpt_from_scratch.model.transformer
 ```
 
 This runs a forward pass and generation test to verify everything works.

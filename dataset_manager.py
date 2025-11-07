@@ -11,6 +11,9 @@ Makes it easy to:
 import os
 import sys
 import subprocess
+import shutil
+import numpy as np
+import pickle
 from pathlib import Path
 
 # Import utility for getting correct Python executable
@@ -20,7 +23,7 @@ def get_python_for_scripts():
     Uses the implementation from utils.python_utils
     """
     try:
-        from utils.python_utils import get_venv_python, is_in_virtualenv
+        from gpt_from_scratch.utils.python_utils import get_venv_python, is_in_virtualenv
         
         python_path = get_venv_python()
         warning = None
@@ -118,7 +121,6 @@ def prepare_custom_text():
             return
 
         # Copy to data directory
-        import shutil
         dest = Path('data') / Path(file_path).name
         shutil.copy(file_path, dest)
         print(f"✓ Copied to {dest}")
@@ -155,8 +157,6 @@ def prepare_custom_text():
 
 def _prepare_from_file_logic(file_path):
     """Internal function to prepare dataset from a text file"""
-    import numpy as np
-    import pickle
     from pathlib import Path
 
     # Ensure output directory exists

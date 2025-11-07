@@ -518,9 +518,24 @@ python gpt.py train
 
 ```
 custom-gpt-from-scratch/
+├── gpt_from_scratch/        # Main Python package
+│   ├── __init__.py
+│   ├── cli.py               # Optional packaged CLI
+│   ├── model/               # Model implementation
+│   │   ├── __init__.py
+│   │   └── transformer.py   # GPT implementation
+│   ├── utils/               # Utilities (single source of truth)
+│   │   ├── __init__.py
+│   │   ├── hardware_detector.py
+│   │   └── python_utils.py
+│   └── data/
+│       ├── __init__.py
+│       └── utils.py         # Data loading helpers
+│
 ├── gpt.py                   # Main command center (use this!)
 ├── train.py                 # Training script
 ├── generate_demo.py         # Simple generation
+├── generate_interactive.py  # Interactive generation
 ├── check_hardware.py        # Hardware checker
 │
 ├── config/                  # Training configurations
@@ -536,9 +551,6 @@ custom-gpt-from-scratch/
 │
 ├── out/                     # Trained models
 │   └── ckpt.pt              # Your trained model!
-│
-└── model/                   # Model code
-    └── transformer.py       # GPT implementation
 ```
 
 ---

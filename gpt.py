@@ -18,7 +18,7 @@ import sys
 import argparse
 import subprocess
 from pathlib import Path
-from utils.python_utils import is_in_virtualenv, get_venv_python
+from gpt_from_scratch.utils.python_utils import is_in_virtualenv, get_venv_python
 
 # Check Python version early
 if sys.version_info < (3, 8):
@@ -125,7 +125,7 @@ def cmd_train(args):
     # Import here to avoid issues if deps not installed
     try:
         sys.path.insert(0, os.path.dirname(__file__))
-        from utils.hardware_detector import HardwareDetector
+        from gpt_from_scratch.utils.hardware_detector import HardwareDetector
         from config_builder import create_training_config
 
         # Step 1: Hardware selection

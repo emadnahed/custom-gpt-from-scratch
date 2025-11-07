@@ -23,13 +23,13 @@ import pickle
 import argparse
 from contextlib import nullcontext
 
-import numpy as np
 import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from model.transformer import GPT, GPTConfig, create_model
-from data.prepare import get_batch, load_prepared_dataset
-from utils.hardware_detector import (
+import numpy as np
+from gpt_from_scratch.model import GPT, GPTConfig, create_model
+from gpt_from_scratch.data.utils import get_batch, load_prepared_dataset
+from gpt_from_scratch.utils.hardware_detector import (
     HardwareDetector,
     auto_detect_device,
     interactive_device_selection
