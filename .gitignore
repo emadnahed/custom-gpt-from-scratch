@@ -4,6 +4,36 @@ venv/# Python
 __pycache__/
 *.py[cod]
 *.so
+foo.md
+
+venv/# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual env
+venv/
+.env
+venv310/
+
+# Data & outputs
+data/*.bin
+data/*.npy
+data/*.pkl
+data/*.txt
+out/
+out-*/
+checkpoints/
+*.ckpt
+*.pt
+*.pth
+
+# IDEs
+.vscode/
+.idea/
+
+# MacOS
+.DS_Store
 
 # Virtual env
 venv/
